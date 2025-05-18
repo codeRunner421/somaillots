@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>S/O MAILLOTS</title>
+  <style>
+    /* Police Times New Roman sur tout le site */
+    body {
+      font-family: "Times New Roman", Times, serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    header, footer {
+      background: #222;
+      color: white;
+      padding: 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav a {
+      color: white;
+      margin-right: 1em;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 1em;
+      max-width: 900px;
+      margin: auto;
+    }
+    .product {
+      border: 1px solid #ddd;
+      padding: 1em;
+      margin-bottom: 1em;
+      background: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 1em;
+    }
+    button:hover {
+      background: #004999;
+    }
+    /* Panier page */
+    #cart-items {
+      margin-bottom: 1em;
+    }
+    #cart-items div {
+      padding: 0.5em 0;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+    }
+    #cart-items div:last-child {
+      border-bottom: none;
+    }
+    footer a {
+      color: #1da1f2;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>S/O MAILLOTS</h1>
+  <nav>
+    <a href="#" id="home-link">Accueil</a>
+    <a href="#" id="products-link">Produits</a>
+    <a href="#" id="cart-link">Panier (<span id="cart-count">0</span>)</a>
+    <a href="https://wa.me/33983439413" target="_blank" rel="noopener" id="contact-link">Contact</a>
+  </nav>
+</header>
+
+<main id="main-content">
+  <!-- Contenu dynamique ici -->
+</main>
+
+<footer>
+  <div>© 2025 S/O MAILLOTS</div>
+  <div>
+    <a href="https://www.instagram.com/s0_maillots" target="_blank" rel="noopener" aria-label="Instagram S/O MAILLOTS">
+      Instagram
+    </a>
+  </div>
+</footer>
+
+<script>
+  // Données produits (exemple)
+  const products = [
+    { id: 1, name: "Maillot PSG 2024", price: 75 },
+    { id: 2, name: "Maillot France 2024", price: 80 },
+    { id: 3, name: "Maillot Barça 2024", price: 85 },
+  ];
+
+  // Panier stocké dans localStorage
+  let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+  const main = document.getElementById('main-content');
+  const cartCountElem = document.getElementById('cart-count');
+
+  // Met à jour l'affichage du nombre d'articles dans le panier
+  function updateCartCount() {
+    const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCountElem.textContent = totalCount;
+  }
+
+  // Ajoute un produit au panier
+  function addToCart(productId) {
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+      existing.quantity++;
+    } else {
+      cart.push({ id: productId, quantity: 1 });
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+    alert("Produit ajouté au panier !");
+  }
+
+  // Affiche la page d'accueil
+  function showHome() {
+    main.innerHTML = `
+      <h2>Bienvenue sur S/O MAILLOTS</h2>
+      <p>Votre boutique spécialisée dans les maillots de clubs et sélections nationales.</p>
+    `;
+  }
+
+  // Affiche la liste des produits
+  function showProducts() {
+    let html = '<h2>Nos produits</h2>';
+    products.forEach(p => {
+      html += `
+        <div class="product">
+          <div>
+            <strong>${p.name}</strong><br>
+            Prix : ${p.price} €
+          </div>
+          <button onclick="addToCart(${p.id})">Ajouter au panier</button>
+        </div>
+      `;
+    });
+    main.innerHTML = html;
+  }
+
+  // Affiche la page panier
+  function showCart() {
+    if (cart.length === 0) {
+      main.innerHTML = '<h2>Votre panier est vide</h2>';
+      return;
+    }
+
+    let html = '<h2>Votre panier</h2><div id="cart-items">';
+    cart.forEach(item => {
+      const product = products.find(p => p.id === item.id);
+      html += `
+        <div>
+          <span>${product.name} x ${item.quantity}</span>
+          <span>${(product.price * item.quantity).toFixed(2)} €</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+
+    // Récapitulatif WhatsApp
+    let message = encodeURIComponent(
+      "Bonjour, je souhaite commander les produits suivants :\n" +
+      cart.map(item => {
+        const product = products.find(p => p.id === item.id);
+        return `- ${product.name} x ${item.quantity}`;
+      }).join('\n')
+    );
+
+    html += `
+      <button id="order-whatsapp">Commander via WhatsApp</button>
+    `;
+
+    main.innerHTML = html;
+
+    document.getElementById('order-whatsapp').onclick = function() {
+      const whatsappURL = `https://wa.me/33983439413?text=${message}`;
+      window.open(whatsappURL, '_blank');
+    };
+  }
+
+  // Navigation
+  document.getElementById('home-link').addEventListener('click', e => {
+    e.preventDefault();
+    showHome();
+  });
+  document.getElementById('products-link').addEventListener('click', e => {
+    e.preventDefault();
+    showProducts();
+  });
+  document.getElementById('cart-link').addEventListener('click', e => {
+    e.preventDefault();
+    showCart();
+  });
+
+  // Initialisation
+  updateCartCount();
+  showHome();
+
+  // Rendre addToCart accessible globalement (nécessaire pour onclick inline)
+  window.addToCart = addToCart;
+</script>
+
+</body>
+</html>
